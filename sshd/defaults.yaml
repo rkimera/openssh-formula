@@ -38,41 +38,41 @@ sshd:
   services:
     - sshd
 
-  ## eliminate key exchange protocols that use NIST curves, have too
+  ## Eliminate key exchange protocols that use NIST curves, have too
   ## small a DH modulus, or use an insecure hash function, while still
-  ## maintaining a degree of backward compatibility
+  ## maintaining a degree of backward compatibility.
   KexAlgorithms:
     - curve25519-sha256@libssh.org
     - diffie-hellman-group-exchange-sha256
 
-  ## disable the DSA and ECDSA server authentication algorithms, which
+  ## Disable the DSA and ECDSA server authentication algorithms, which
   ## depend on the quality/integrity of the PRNG to prevent key
-  ## recovery attacks; DSA also requires 1024-bit keys, which are too
-  ## small
+  ## recovery attacks.  DSA also requires 1024-bit keys, which are too
+  ## small.
   HostKey:
     - /etc/ssh/ssh_host_ed25519_key
     - /etc/ssh/ssh_host_rsa_key
 
-  ## explicitly disable the old, broken SSHv1 protocol
+  ## Explicitly disable the old, broken SSHv1 protocol.
   Protocol: 2
 
-  ## explicitly disable password authentication and enable public key
-  ## authentication (note that ChallengeResponseAuthentication must be
-  ## enabled if using a PAM-based OTP mechanism)
+  ## Explicitly disable password authentication and enable public key
+  ## authentication.  (Note that ChallengeResponseAuthentication must
+  ## be enabled if using a PAM-based OTP mechanism.)
   PasswordAuthentication: no
   ChallengeResponseAuthentication: no
   PubkeyAuthentication: yes
 
-  ## restrict remote access to the designated users or groups
+  ## Restrict remote access to the designated users or groups.
   #AllowGroups: ssh-user
 
-  ## eliminate broken ciphers, key sizes less than 128 bits, and block
-  ## ciphers with block sizes smaller than 128 bits; prefer
-  ## AE modes but allow CTR for backwards compatibility (CTR with
-  ## Encrypt-then-MAC is provably secure), and prefer
+  ## Eliminate broken ciphers, key sizes less than 128 bits, and block
+  ## ciphers with block sizes smaller than 128 bits.  Prefer AE modes
+  ## but allow CTR for backwards compatibility (CTR with
+  ## Encrypt-then-MAC being provably secure), and prefer
   ## ChaCha20+Poly1305 over the others because it encrypts message
   ## sizes (which prevents certain kinds of encrypted traffic analysis
-  ## attacks)
+  ## attacks).
   Ciphers:
     - chacha20-poly1305@openssh.com
     - aes256-gcm@openssh.com
@@ -81,8 +81,8 @@ sshd:
     - aes192-ctr
     - aes128-ctr
 
-  ## only use Encrypt-then-MAC with strong hash algorithms; also
-  ## enforce minimum tag and key sizes of 128 bits
+  ## Only use Encrypt-then-MAC with strong hash algorithms; also
+  ## enforce minimum tag and key sizes of 128 bits.
   MACs:
     - hmac-sha2-512-etm@openssh.com
     - hmac-sha2-256-etm@openssh.com
@@ -96,8 +96,8 @@ sshd:
   Subsystem:
     - sftp /usr/libexec/sftp-server
 
-  ## the OpenBSD DH-GEx moduli list filtered to remove those smaller
-  ## than 2000 bits
+  ## Filter the OpenBSD-provided Diffie-Hellman Group Exchange
+  ## (DH-GEx) moduli list to remove those smaller than 2000 bits.
   moduli:
     - time: 20150520235007
       type: 2
