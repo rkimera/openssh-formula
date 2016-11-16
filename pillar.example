@@ -40,6 +40,9 @@ ssh:
     RekeyLimit: 1G 1h
     VerifyHostKeyDNS: ask
 
+  Host bastion.example.com:     # how to remove a default
+    ~
+
 ####
 #### EXAMPLE SSH SERVER CONFIGURATION
 ####
