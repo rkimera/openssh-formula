@@ -68,7 +68,10 @@
 
 {% do default_settings.ssh.update(distro_map) %}
 
-{% set ssh_settings = salt['pillar.get']('ssh',
-  default=default_settings.ssh, merge=True) %}
+{% set ssh_settings = salt['pillar.get'](
+    'ssh',
+    default=default_settings.ssh,
+    merge=True
+  ) %}
 
 {# SSH/MAP.JINJA ends here. #}
