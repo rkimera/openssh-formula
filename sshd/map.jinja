@@ -86,7 +86,10 @@
 
 {% do default_settings.sshd.update(distro_map) %}
 
-{% set sshd_settings = salt['pillar.get']('sshd',
-  default=default_settings.sshd, merge=True) %}
+{% set sshd_settings = salt['pillar.get'](
+    'sshd',
+    default=default_settings.sshd,
+    merge=True
+  ) %}
 
 {# SSHD/MAP.JINJA ends here. #}
