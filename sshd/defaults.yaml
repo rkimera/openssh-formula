@@ -37,6 +37,8 @@ sshd:
     /etc/ssh
   services:
     - sshd
+  Subsystem:
+    - sftp /usr/libexec/sftp-server
 
   ## Eliminate key exchange protocols that use NIST curves, have too
   ## small a DH modulus, or use an insecure hash function, while still
@@ -92,9 +94,6 @@ sshd:
     - hmac-sha2-256
     - hmac-ripemd160
     - umac-128@openssh.com
-
-  Subsystem:
-    - sftp /usr/libexec/sftp-server
 
   ## Filter the OpenBSD-provided Diffie-Hellman Group Exchange
   ## (DH-GEx) moduli list to remove those smaller than 2000 bits.

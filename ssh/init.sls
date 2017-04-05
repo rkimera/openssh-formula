@@ -29,7 +29,7 @@
 ### described in OSHA 1910.145,
 ### https://www.osha.gov/pls/oshaweb/owadisp.show_document?p_table=standards&p_id=9794.
 
-{% from "ssh/map.jinja" import ssh_settings with context %}
+{%- from "ssh/map.jinja" import ssh_settings with context %}
 
 ssh:
   pkg.installed:

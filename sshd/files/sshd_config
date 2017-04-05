@@ -1,40 +1,43 @@
-{# SSHD/FILES/SSHD_CONFIG --- OpenSSH server configuration template
+{#- SSHD/FILES/SSHD_CONFIG --- OpenSSH server configuration template
 
-   Copyright (c) 2015, Matthew X. Economou <xenophon@irtnog.org>
+    Copyright (c) 2015, Matthew X. Economou <xenophon@irtnog.org>
 
-   Permission to use, copy, modify, and/or distribute this software
-   for any purpose with or without fee is hereby granted, provided
-   that the above copyright notice and this permission notice appear
-   in all copies.
+    Permission to use, copy, modify, and/or distribute this software
+    for any purpose with or without fee is hereby granted, provided
+    that the above copyright notice and this permission notice appear
+    in all copies.
   
-   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
-   WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
-   AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
-   CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
-   OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
-   NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
-   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+    WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+    AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+    CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+    NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+    CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-   This file generates the sshd_config file from a Jinja template.
-   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in
-   this document are to be interpreted as described in RFC 2119,
-   https://tools.ietf.org/html/rfc2119.  The key words "MUST (BUT WE
-   KNOW YOU WON'T)", "SHOULD CONSIDER", "REALLY SHOULD NOT", "OUGHT
-   TO", "WOULD PROBABLY", "MAY WISH TO", "COULD", "POSSIBLE", and
-   "MIGHT" in this document are to be interpreted as described in RFC
-   6919, https://tools.ietf.org/html/rfc6919.  The keywords "DANGER",
-   "WARNING", and "CAUTION" in this document are to be interpreted as
-   described in OSHA 1910.145,
-   https://www.osha.gov/pls/oshaweb/owadisp.show_document?p_table=standards&p_id=9794. #}
+    This file generates the sshd_config file from a Jinja
+    template. The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+    "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and
+    "OPTIONAL" in this document are to be interpreted as described in
+    RFC 2119, https://tools.ietf.org/html/rfc2119.  The key words
+    "MUST (BUT WE KNOW YOU WON'T)", "SHOULD CONSIDER", "REALLY SHOULD
+    NOT", "OUGHT TO", "WOULD PROBABLY", "MAY WISH TO", "COULD",
+    "POSSIBLE", and "MIGHT" in this document are to be interpreted as
+    described in RFC 6919, https://tools.ietf.org/html/rfc6919.  The
+    keywords "DANGER", "WARNING", and "CAUTION" in this document are
+    to be interpreted as described in OSHA 1910.145,
+    https://www.osha.gov/pls/oshaweb/owadisp.show_document?p_table=standards&p_id=9794.
+-#}
 
 {%- from "sshd/map.jinja" import sshd_settings with context -%}
-{#- remove formula-specific keys (kind of a hack) -#}
+
+{#- Remove formula-specific keys. -#}
 {%- do sshd_settings.pop('packages') -%}
 {%- do sshd_settings.pop('config_directory') -%}
 {%- do sshd_settings.pop('services') -%}
 {%- do sshd_settings.pop('moduli') -%}
+
 #### SSHD_CONFIG --- System-wide OpenSSH server configuration file
 
 ### This is the sshd server system-wide configuration file, managed by
@@ -42,46 +45,56 @@
 ### changes to this file will be overwritten by the configuration
 ### management system.
 
+{#- Conditional blocks contain other configuration directives. #}
+{%- set conditional_blocks = [
+  'Match',
+] %}
+
+{#- These keywords get repeated for each list entry. #}
+{%- set repeated_keywords = [
+  'AcceptEnv',
+  'HostKey',
+  'ListenAddress',
+  'Subsystem',
+] %}
+
+{#- The list values for these keywords are space-delimited.
+    Otherwise, list values get rendered as comma-delimited. #}
+{%- set space_delimited_lists = [
+  'AllowGroups',
+  'AllowUsers',
+  'AuthorizedKeysFile',
+  'DenyGroups',
+  'DenyUsers',
+  'PermitOpen',
+] %}
+
 {%- macro render_sshd_config(dict, width=0) -%}
-  {%- if dict is defined and dict is mapping %}
-    {%- for key, value in dict.items() %}
-      {%- if value is sameas None %}
-        {#- no-op -#}
-      {%- elif key.split(' ')[0] in [
-          'Match',
-        ] %}
-{{ '%s'|format(key)|indent(width) }}{{ render_ssh_config(value, width+2) }}
-      {%- elif value is sequence and value is not string %}
-        {%- if key in [
-            'AcceptEnv',
-            'HostKey',
-            'ListenAddress',
-            'Subsystem'
-          ] %}
-          {%- for v in value %}
-{{ '%s %s'|format(key, v)|indent(width, True) }}
-          {%- endfor %}
-        {%- elif key in [
-            'AllowGroups',
-            'AllowUsers',
-            'AuthorizedKeysFile',
-            'DenyGroups',
-            'DenyUsers',
-            'PermitOpen',
-          ] %}
-{{ '%s %s'|format(key, value|join(' '))|indent(width, True) }}
-        {%- else %}
-{{ '%s %s'|format(key, value|join(','))|indent(width, True) }}
-        {%- endif %}
-      {%- elif value is sameas(True) or value is sameas(False) %}
-{{ '%s %s'|format(key, "yes" if value else "no")|indent(width, True) }}
-      {%- elif value is sameas(None) %}
-{{ '%s none'|format(key)|indent(width, True) }}
-      {%- else %}
-{{ '%s %s'|format(key, value)|indent(width, True) }}
-      {%- endif %}
-    {%- endfor %}
-  {%- endif %}
+{%-   if dict is defined and dict is mapping %}
+{%-     for key, value in dict|dictsort %}
+{%-       if value is sameas None %}
+{#-         no-op -#}
+{%-       elif key.split(' ')[0] in conditional_blocks %}
+{{          '%s'|format(key)|indent(width) }}{{ render_ssh_config(value, width+2) }}
+{%-       elif value is sequence and value is not string %}
+{%-         if key in repeated_keywords %}
+{%-           for v in value %}
+{{             '%s %s'|format(key, v)|indent(width, True) }}
+{%-           endfor %}
+{%-         elif key in space_delimited_lists %}
+{{            '%s %s'|format(key, value|join(' '))|indent(width, True) }}
+{%-         else %}
+{{            '%s %s'|format(key, value|join(','))|indent(width, True) }}
+{%-         endif %}
+{%-       elif value is sameas(True) or value is sameas(False) %}
+{{          '%s %s'|format(key, "yes" if value else "no")|indent(width, True) }}
+{%-       elif value is sameas(None) %}
+{{          '%s none'|format(key)|indent(width, True) }}
+{%-       else %}
+{{          '%s %s'|format(key, value)|indent(width, True) }}
+{%-       endif %}
+{%-     endfor %}
+{%-   endif %}
 {%- endmacro %}
 {{ render_sshd_config(sshd_settings) }}
 
