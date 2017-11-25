@@ -71,7 +71,7 @@
 
 {%- macro render_ssh_config(dict, width=0) -%}
 {%-   if dict is defined and dict is mapping %}
-{%-     for key, value in dict.items() %}
+{%-     for key, value in dict|dictsort %}
 {%-       if value is sameas None %}
 {#-         no-op -#}
 {%-       elif key.split(' ')[0] in conditional_blocks %}
